@@ -1,0 +1,231 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Cute Birthday Website</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<style>
+/* ------------------- CUTE GLOBAL STYLES ------------------- */
+:root{
+  --bg:#fff7fb;
+  --card:#ffffff;
+  --accent:#ffd6e7;
+  --accent2:#fbe7ff;
+  --text:#4b3a46;
+  --muted:#8b7d86;
+  --radius:16px;
+}
+
+*{margin:0;padding:0;box-sizing:border-box;}
+body{
+  font-family:"Comic Sans MS","Segoe Script","Bradley Hand",cursive;
+  background:var(--bg);
+  color:var(--text);
+  min-height:100vh;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  padding:20px;
+}
+
+.page{display:none; width:100%; max-width:700px; text-align:center;}
+.show{display:block;}
+
+.card{
+  background:var(--card);
+  padding:25px;
+  border-radius:var(--radius);
+  box-shadow:0 10px 25px rgba(0,0,0,0.08);
+}
+
+h1,h2{margin-bottom:10px;}
+img{
+  max-width:80%;
+  border-radius:14px;
+  margin:14px 0;
+  box-shadow:0 8px 18px rgba(0,0,0,0.1);
+}
+
+/* Buttons always on top */
+.btn{
+  padding:12px 20px;
+  border:none;
+  border-radius:14px;
+  cursor:pointer;
+  margin:6px;
+  font-weight:600;
+  background:linear-gradient(180deg,var(--accent),var(--accent2));
+  box-shadow:0 8px 18px rgba(0,0,0,0.10);
+  position:relative;
+  z-index:99999;
+}
+.btn:active{transform:scale(.97)}
+
+.btn-outline{
+  background:transparent;
+  border:2px solid rgba(0,0,0,0.15);
+}
+
+/* Confetti canvas fixed behind everything */
+#confettiCanvas{
+  position:fixed;
+  top:0;left:0;
+  width:100%;height:100%;
+  pointer-events:none;
+  display:none;
+  z-index:-1 !important;
+}
+</style>
+</head>
+<body>
+
+<canvas id="confettiCanvas"></canvas>
+
+<!-- --------------------- PAGE 1 --------------------- -->
+<div id="page1" class="page show">
+  <div class="card">
+    <h1>Here’s a surprise for you!</h1>
+    <img id="surpriseImg" src="surprise.png" alt="">
+    <div>
+      <button class="btn" onclick="goTo(2)">Accept</button>
+      <button class="btn btn-outline" onclick="goTo(3)">Reject</button>
+    </div>
+  </div>
+</div>
+
+<!-- --------------------- PAGE 2 --------------------- -->
+<div id="page2" class="page">
+  <div class="card">
+    <h2>Make a wish 🎂</h2>
+    <img id="cakeImg" src="cake.png" alt="">
+    <h3>💌 Tap the envelope</h3>
+    <img id="letterEnvelope" src="envelope.png" onclick="goTo(4)" style="max-width:200px; cursor:pointer;">
+    <div>
+      <button class="btn btn-outline" onclick="goTo(1)">Back</button>
+    </div>
+  </div>
+</div>
+
+<!-- --------------------- PAGE 3 --------------------- -->
+<div id="page3" class="page">
+  <div class="card">
+    <h2>ouch 😭 try again?...Jyada te te mt kr</h2>
+    <img id="rejectImg" src="reject.png" alt="">
+    <button class="btn" onclick="goTo(1)">Go Back</button>
+  </div>
+</div>
+
+<!-- --------------------- PAGE 4 --------------------- -->
+<div id="page4" class="page">
+  <div class="card">
+    <h2>Your Letter</h2>
+    <p contenteditable="true" style="background:#fff0fa;padding:15px;border-radius:12px;">
+      Happy birthday <br><br>
+      You’re the kind of friend people spend their whole life wishing for. Someone who listens without judgment, laughs with me even on the bad days, and somehow always knows exactly what to say. With you, everything feels lighter, softer, and a little more magical. Thank you for being my constant comfort, my safe place, and the person I can be fully myself around. I’m really grateful that our lives crossed paths — you truly make the world feel kinder just by being in it. I LOVE YOU 💗...HEHEHEHHE
+    </p>
+    <button class="btn" onclick="goTo(5)">Next</button>
+    <button class="btn btn-outline" onclick="goTo(2)">Back</button>
+  </div>
+</div>
+
+<!-- --------------------- PAGE 5 --------------------- -->
+<div id="page5" class="page">
+  <div class="card">
+    <h1>Happy Birthday!</h1>
+    <img id="birthdayImg" src="birthday.png" alt="">
+    <button class="btn" onclick="goTo(6)">Continue</button>
+    <button class="btn btn-outline" onclick="goTo(4)">Back</button>
+  </div>
+</div>
+
+<!-- --------------------- PAGE 6 --------------------- -->
+<div id="page6" class="page">
+  <div class="card">
+    <h2>Gusse me bilkul laal tamaatar lgti ho💢</h2>
+    <p>Pr achi lgti h🙂‍↕️!</p>
+    <button class="btn" onclick="goTo(1)">Start Again</button>
+  </div>
+</div>
+
+<script>
+/* ------------------- PAGE SWITCHING ------------------- */
+function goTo(n){
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('show'));
+  document.getElementById('page'+n).classList.add('show');
+
+  if(n === 5){
+    startConfetti();
+  } else {
+    stopConfetti();
+  }
+}
+
+/* ------------------- CONFETTI ENGINE ------------------- */
+let confettiCanvas = document.getElementById('confettiCanvas');
+let ctx = confettiCanvas.getContext('2d');
+let confettiPieces = [];
+let confettiTimer = null;
+
+function startConfetti(){
+  confettiCanvas.style.display = "block";
+  resizeCanvas();
+  window.addEventListener('resize', resizeCanvas);
+
+  confettiPieces = [];
+  for(let i=0;i<100;i++){
+    confettiPieces.push(newPiece());
+  }
+
+  if(confettiTimer) clearInterval(confettiTimer);
+  confettiTimer = setInterval(updateConfetti, 16);
+}
+
+function stopConfetti(){
+  confettiCanvas.style.display = "none";
+  ctx.clearRect(0,0,confettiCanvas.width,confettiCanvas.height);
+  if(confettiTimer) clearInterval(confettiTimer);
+}
+
+function resizeCanvas(){
+  confettiCanvas.width = window.innerWidth;
+  confettiCanvas.height = window.innerHeight;
+}
+
+function newPiece(){
+  return {
+    x:Math.random()*confettiCanvas.width,
+    y:Math.random()*confettiCanvas.height - confettiCanvas.height,
+    size:6+Math.random()*8,
+    color:`hsl(${Math.random()*360},90%,75%)`,
+    speedY:2+Math.random()*3,
+    speedX:-1+Math.random()*2,
+    rot:Math.random()*360
+  };
+}
+
+function updateConfetti(){
+  ctx.clearRect(0,0,confettiCanvas.width,confettiCanvas.height);
+
+  confettiPieces.forEach(p=>{
+    p.y += p.speedY;
+    p.x += p.speedX;
+    p.rot += 3;
+
+    if(p.y > confettiCanvas.height){
+      p.y = -10;
+      p.x = Math.random()*confettiCanvas.width;
+    }
+
+    ctx.save();
+    ctx.translate(p.x, p.y);
+    ctx.rotate(p.rot*Math.PI/180);
+    ctx.fillStyle = p.color;
+    ctx.fillRect(-p.size/2, -p.size/2, p.size, p.size*0.6);
+    ctx.restore();
+  });
+}
+</script>
+
+</body>
+</html>
